@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
         List<HomeFocusDetailBean> list_focus = new ArrayList<>();//因为控件不支持视图的循环调用，这里需要复制多份数据
 
         HomeFocusDetailBean homeFocusDetailBean = new HomeFocusDetailBean();
-        homeFocusDetailBean.setPic_url("https://s0.chunboimg.com/group1/M00/A8/C5/Cv4JrV_PYn2AV6XpAAM2JQNjnj4790.jpg");
+        homeFocusDetailBean.setPic_url("https://s2.chunboimg.com/group1/M01/37/98/Cv4JrmT4kTCAR02NAAIwulbN2tw378_640_390.jpg");
         list_focus.add(homeFocusDetailBean);
 
         homeFocusDetailBean = new HomeFocusDetailBean();
@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
         list_focus.add(homeFocusDetailBean);
 
         homeFocusDetailBean = new HomeFocusDetailBean();
-        homeFocusDetailBean.setPic_url("https://s2.chunboimg.com/group1/M01/32/B1/Cv4JrWSStYGATmZmAAOVSAAUYzU821_640_390.jpg");
+        homeFocusDetailBean.setPic_url("https://s2.chunboimg.com/group1/M01/36/78/Cv4JrmTbMXeAEeasAAIYqz4koKI917_640_390.jpg");
         list_focus.add(homeFocusDetailBean);
 
         return list_focus;
