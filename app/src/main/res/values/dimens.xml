@@ -1,0 +1,103 @@
+<resources>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+
+    <!-- 边距及控件大小 -->
+    <dimen name="px1">0.49dp</dimen>
+    <dimen name="px2">0.98dp</dimen>
+    <dimen name="px5">2.45dp</dimen>
+    <dimen name="px10">4.9dp</dimen>
+    <dimen name="px80">39.2dp</dimen>
+    <dimen name="px12">5.9dp</dimen>
+    <dimen name="px15">7.4dp</dimen>
+    <dimen name="px18">8.8dp</dimen>
+    <dimen name="px20">9.8dp</dimen>
+    <dimen name="px22">10.8dp</dimen>
+    <dimen name="px24">11.8dp</dimen>
+    <dimen name="px25">12.3dp</dimen>
+    <dimen name="px28">13.7dp</dimen>
+    <dimen name="px30">14.8dp</dimen>
+    <dimen name="px32">15.68dp</dimen>
+    <dimen name="px35">17.2dp</dimen>
+    <dimen name="px36">17.6dp</dimen>
+    <dimen name="px40">19.6dp</dimen>
+    <dimen name="px42">20.6dp</dimen>
+    <dimen name="px45">22dp</dimen>
+    <dimen name="px50">24.5dp</dimen>
+    <dimen name="px60">29.4dp</dimen>
+    <dimen name="px65">31.8dp</dimen>
+    <dimen name="px68">33.4dp</dimen>
+    <dimen name="px70">34.4dp</dimen>
+    <dimen name="px72">35.3dp</dimen>
+    <dimen name="px84">41.16dp</dimen>
+    <dimen name="px88">43.2dp</dimen>
+    <dimen name="px98">48dp</dimen>
+    <dimen name="px100">49dp</dimen>
+    <dimen name="px108">53dp</dimen>
+    <dimen name="px118">57.9dp</dimen>
+    <dimen name="px120">58.9dp</dimen>
+    <dimen name="px128">62.8dp</dimen>
+    <dimen name="px140">68.7dp</dimen>
+    <dimen name="px150">73.6dp</dimen>
+    <dimen name="px155">76dp</dimen>
+    <dimen name="px160">78.5dp</dimen>
+    <dimen name="px165">80dp</dimen>
+    <dimen name="px170">83.4dp</dimen>
+    <dimen name="px180">88.3dp</dimen>
+    <dimen name="px188">92.3dp</dimen>
+    <dimen name="px182">89.3dp</dimen>
+    <dimen name="px200">98.1dp</dimen>
+    <dimen name="px208">102.1dp</dimen>
+    <dimen name="px213">104.5dp</dimen>
+    <dimen name="px240">117.8dp</dimen>
+    <dimen name="px250">122.7dp</dimen>
+    <dimen name="px260">127.6dp</dimen>
+    <dimen name="px280">137.6dp</dimen>
+    <dimen name="px300">147.2dp</dimen>
+    <dimen name="px310">152.1dp</dimen>
+    <dimen name="px325">159.1dp</dimen>
+    <dimen name="px340">170.1dp</dimen>
+    <dimen name="px354">175dp</dimen>
+    <dimen name="px387">190dp</dimen>
+    <dimen name="px400">196.3dp</dimen>
+    <dimen name="px427">209.6dp</dimen>
+    <dimen name="px435">217.6dp</dimen>
+    <dimen name="px450">225dp</dimen>
+    <dimen name="px485">240dp</dimen>
+    <dimen name="px520">255.2dp</dimen>
+    <dimen name="px580">284.7dp</dimen>
+
+    <!-- 字体的大小 -->
+    <dimen name="font_px12">5.8sp</dimen>
+    <dimen name="font_px20">9.8sp</dimen>
+    <dimen name="font_px22">10.8sp</dimen>
+    <dimen name="font_px24">11.8sp</dimen>
+    <dimen name="font_px26">12.7sp</dimen>
+    <dimen name="font_px28">13.7sp</dimen>
+    <dimen name="font_px30">14.8sp</dimen>
+    <dimen name="font_px32">15.7sp</dimen>
+    <dimen name="font_px34">16.7sp</dimen>
+    <dimen name="font_px36">17.2sp</dimen>
+    <dimen name="font_px44">21.6sp</dimen>
+    <dimen name="font_px56">27.6sp</dimen>
+    <dimen name="font_px70">34.3sp</dimen>
+    <dimen name="LargeTextSize">16dp</dimen>
+    <dimen name="BasicTextSize">15dp</dimen>
+    <dimen name="TitleTextSize">18dp</dimen>
+    <dimen name="SmallTextSize">14dp</dimen>
+    <dimen name="SmallerTextSize">13dp</dimen>
+    <dimen name="LargestTextSize">30dp</dimen>
+    <dimen name="ChattingTextSize">16dp</dimen>
+    <dimen name="ChattingContentMinHeight">49dp</dimen>
+    <dimen name="PreferenceItemHeight">42dp</dimen>
+    <dimen name="ConversationItemHeight">58dp</dimen>
+    <dimen name="LargeAvatarSize">56dp</dimen>
+
+
+    <dimen name="dp3">3dp</dimen>
+    <dimen name="dp11">11dp</dimen>
+    <dimen name="dp14">14dp</dimen>
+
+
+</resources>
