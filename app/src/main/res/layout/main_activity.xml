@@ -11,7 +11,8 @@
         android:layout_height="wrap_content"
         android:paddingBottom="5dp"
         android:paddingTop="5dp"
-        pile:interval="10dp"
-        pile:sizeRatio="0.61"/>
+        pile:imageInterval="10dp"
+        pile:imageSizeRatio="0.61"
+        pile:timerDelayTime="5"/>
 
 </LinearLayout>

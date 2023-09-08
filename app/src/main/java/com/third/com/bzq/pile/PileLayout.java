@@ -2,6 +2,7 @@ package com.third.com.bzq.pile;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -42,11 +43,13 @@ public class PileLayout extends ViewGroup {
 
     //全局变量
     private boolean isRightScrolling = false;//是否向右滑动中
+    private boolean isForceLeftScroll = false;//是否强制左滑
     private boolean isForceRightScroll = false;//是否强制右滑
 
     //属性参数
-    private int interval = 30; //View的间隔
-    private float sizeRatio = 0.61f;//图的长宽比
+    private int imageInterval = 30; //图的间隔
+    private float imageSizeRatio = 0.61f;//图的长宽比
+    private int timerDelayTime = 5;//定时器延迟的时间：秒
 
     //布局与图片相关
     private List<Integer> originX = new ArrayList<>(); //存放的是最初的n个View的位置
@@ -67,6 +70,12 @@ public class PileLayout extends ViewGroup {
     private float lastX;//最后一次x的坐标
     private int diff_X = 0;//水平滑动的距离
 
+    //定时器
+    private boolean isOnTimer = true;//是否开启定时器
+    private static Handler handlerTimer = new Handler();//定时器
+    private static Runnable runnableTimer;//定时器-运行
+    private boolean timerIsRuning = false;//定时器是否在运行中
+
     //**************************************** 构造函数 ****************************************//
 
     public PileLayout(Context context) {
@@ -84,6 +93,8 @@ public class PileLayout extends ViewGroup {
 
         setListener();//定义监听事件
         initAdapter();//初始化适配器
+
+        initTimerAndStart();//定时器
     }
 
     //**************************************** 常规处理 ****************************************//
@@ -93,9 +104,14 @@ public class PileLayout extends ViewGroup {
 
         //获取属性值
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.pile);
-        interval = (int) a.getDimension(R.styleable.pile_interval, interval);
-        sizeRatio = a.getFloat(R.styleable.pile_sizeRatio, sizeRatio);
+        imageInterval = (int) a.getDimension(R.styleable.pile_imageInterval, imageInterval);
+        imageSizeRatio = a.getFloat(R.styleable.pile_imageSizeRatio, imageSizeRatio);
+        timerDelayTime = a.getInt(R.styleable.pile_timerDelayTime, timerDelayTime);
         a.recycle();
+
+        if (timerDelayTime <= 0) {
+            isOnTimer = false;//关闭定时器
+        }
 
     }
 
@@ -138,15 +154,15 @@ public class PileLayout extends ViewGroup {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int width = getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec);//屏幕宽度
-        everyWidth = (width - getPaddingLeft() - getPaddingRight() - interval * FOCUS_DISPLAY_COUNT);//图的宽
-        everyHeight = (int) (everyWidth * sizeRatio);//图的高
+        everyWidth = (width - getPaddingLeft() - getPaddingRight() - imageInterval * FOCUS_DISPLAY_COUNT);//图的宽
+        everyHeight = (int) (everyWidth * imageSizeRatio);//图的高
         setMeasuredDimension(width, everyHeight);
 
         //把每个View的初始位置坐标都计算好（不参与实际绘制）
         if (originX.size() == 0) {
 
             //1最左边的（隐藏）
-            int position0 = 0 - everyWidth - interval;
+            int position0 = 0 - everyWidth - imageInterval;
             originX.add(position0);
 
             //2主图
@@ -154,11 +170,11 @@ public class PileLayout extends ViewGroup {
             originX.add(position1);
 
             //3第二个显示图
-            int position2 = position1 + interval + 100;
+            int position2 = position1 + imageInterval + 100;
             originX.add(position2);
 
             //4第三个显示图
-            int position3 = position2 + interval + 100;
+            int position3 = position2 + imageInterval + 100;
             originX.add(position3);
 
         }
@@ -189,33 +205,87 @@ public class PileLayout extends ViewGroup {
                 itemView.setZ(num - i);//2,1,0...
             }
 
-            adjustScale(itemView, i);
-            adjustAlpha(itemView, i);
+            adjustScaleAndAlpha(itemView, i, 0);
         }
     }
 
-    //透明度
-    private void adjustAlpha(View itemView, int position) {
-        if (position == 2) {
-            itemView.setAlpha(0.6f);
-        } else if (position == 3) {
-            itemView.setAlpha(0.3f);
-        } else {
-            itemView.setAlpha(1f);
-        }
-    }
+    //透明度与缩放
+    private void adjustScaleAndAlpha(View itemView, int position, int diffX) {
+        if (isRightScrolling) { //****** 处于向右滑动中 ******//
 
-    //缩放
-    private void adjustScale(View itemView, int position) {
-        if (position == 2) {
-            itemView.setScaleX(0.85f);
-            itemView.setScaleY(0.85f);
-        } else if (position == 3) {
-            itemView.setScaleX(0.7f);
-            itemView.setScaleY(0.7f);
-        } else {
-            itemView.setScaleX(1f);
-            itemView.setScaleY(1f);
+            if (position == 2) {
+                //透明度
+                float offsetAlpha = (float) diffX / 4000;
+                itemView.setAlpha(itemView.getAlpha() - offsetAlpha);
+                //缩放
+                float offsetScale = (float) diffX / 8000;
+                itemView.setScaleX(itemView.getScaleX() - offsetScale);
+                itemView.setScaleY(itemView.getScaleY() - offsetScale);
+
+            } else if (position == 3) {
+                //透明度
+                float offsetAlpha = (float) diffX / 2000;
+                itemView.setAlpha(itemView.getAlpha() - offsetAlpha);
+                //缩放
+                float offsetScale = (float) diffX / 10000;
+                itemView.setScaleX(itemView.getScaleX() - offsetScale);
+                itemView.setScaleY(itemView.getScaleY() - offsetScale);
+            } else {
+                //透明度
+                itemView.setAlpha(1f);
+                //缩放
+                itemView.setScaleX(1f);
+                itemView.setScaleY(1f);
+            }
+
+        } else if (diffX == 0) { //****** 静止状态,默认状态 ******//
+
+            if (position == 2) {
+                //透明度
+                itemView.setAlpha(0.8f);
+                //缩放
+                itemView.setScaleX(0.85f);
+                itemView.setScaleY(0.85f);
+            } else if (position == 3) {
+                //透明度
+                itemView.setAlpha(0.4f);
+                //缩放
+                itemView.setScaleX(0.7f);
+                itemView.setScaleY(0.7f);
+            } else {
+                //透明度
+                itemView.setAlpha(1f);
+                //缩放
+                itemView.setScaleX(1f);
+                itemView.setScaleY(1f);
+            }
+
+        } else { //****** 处于左滑状态 ******//
+
+            if (position == 2) {
+                //透明度
+                float offsetAlpha = (float) diffX / 2000;//计算滑动变化的数值
+                itemView.setAlpha(itemView.getAlpha() - offsetAlpha);
+                //缩放
+                float offsetScale = (float) diffX / 10000;//计算滑动变化的数值
+                itemView.setScaleX(itemView.getScaleX() - offsetScale);
+                itemView.setScaleY(itemView.getScaleY() - offsetScale);
+            } else if (position == 3) {
+                //透明度
+                float offsetAlpha = (float) diffX / 4000;//计算滑动变化的数值
+                itemView.setAlpha(itemView.getAlpha() - offsetAlpha);
+                //缩放
+                float offsetScale = (float) diffX / 12000;//计算滑动变化的数值
+                itemView.setScaleX(itemView.getScaleX() - offsetScale);
+                itemView.setScaleY(itemView.getScaleY() - offsetScale);
+            } else {
+                //透明度
+                itemView.setAlpha(1f);
+                //缩放
+                itemView.setScaleX(1f);
+                itemView.setScaleY(1f);
+            }
+
         }
     }
 
@@ -357,6 +427,7 @@ public class PileLayout extends ViewGroup {
             case MotionEvent.ACTION_DOWN:
 
                 setParentScrollAble(false);
+                stopTimer();
 
                 scrollMode = MODE_IDLE;//空闲模式
                 isRightScrolling = false;
@@ -385,6 +456,7 @@ public class PileLayout extends ViewGroup {
             case MotionEvent.ACTION_CANCEL:
 
                 setParentScrollAble(true);// 当手指松开时，让父控件重新获取onTouch权限
+                startTimer();
 
                 //ACTION_UP还能拦截（如果是水平滑动，抬起后不会走到这里），说明：
                 //1.手指【没有水平】滑动
@@ -433,7 +505,9 @@ public class PileLayout extends ViewGroup {
                     recoverRightScrollStatus();
                 }
 
-                handleScrollChangeEnd(diff_X);
+                handleScrollChangeEnd(diff_X);//处理滚动后的最终逻辑
+
+                startTimer();//开启定时器
 
                 break;
         }
@@ -473,10 +547,15 @@ public class PileLayout extends ViewGroup {
                 for (int i = 0; i < num; i++) {
                     FrameLayout rowView = (FrameLayout) getChildAt(i);
                     if (i == 0 || i == 1) {
-                        int newLeftX = originX.get(i) - everyWidth - interval;
+                        int newLeftX = originX.get(i) - everyWidth - imageInterval;
                         rowView.setLeft(newLeftX);
                         rowView.setRight(newLeftX + everyWidth);
                         rowView.setZ(num - 1);
+                    } else if (i == 2) {//解决因为右滑产生图片右移过大的问题，直接以主图位置为基准
+                        int newLeftX1 = originX.get(1) + imageInterval;
+                        rowView.setLeft(newLeftX1);
+                        rowView.setRight(newLeftX1 + everyWidth);
+                        rowView.setZ(num - i);
                     } else {
                         int newLeftX1 = originX.get(i);
                         rowView.setLeft(newLeftX1);
@@ -494,11 +573,10 @@ public class PileLayout extends ViewGroup {
             if (i == 0 || i == 1) {//主图
                 itemView.offsetLeftAndRight(diffX);
             } else {
-                itemView.offsetLeftAndRight(diffX / 10);
+                itemView.offsetLeftAndRight(diffX / 7);
             }
 
-            adjustAlpha(itemView, i); //调整透明度
-            adjustScale(itemView, i); //调整缩放
+            adjustScaleAndAlpha(itemView, i, diffX);
         }
     }
 
@@ -547,7 +625,7 @@ public class PileLayout extends ViewGroup {
 
             notifyDataSetChanged();//更新适配器
 
-        } else if (diffX < 0 && isOffset) {//向左的滑动：偏移量超过图片的一半
+        } else if (diffX < 0 && (isOffset || isForceLeftScroll)) {//向左的滑动：偏移量超过图片的一半
 
             //取得当前最后一个的索引值
             int curLastIndex = StringUtil.str2Int(getChildAt(FOCUS_DISPLAY_COUNT).getTag().toString());
@@ -575,10 +653,74 @@ public class PileLayout extends ViewGroup {
                 rowView.setZ(num - i);
             }
 
-            adjustAlpha(rowView, i); //调整透明度
-            adjustScale(rowView, i); //调整缩放
+            adjustScaleAndAlpha(rowView, i, 0);
         }
 
+    }
+
+    //**************************************** 滑动事件 ****************************************//
+
+    //初始化定时器
+    private void initTimerAndStart() {
+
+        if (!isOnTimer) {//定时器已关闭
+            return;
+        }
+
+        //定义
+        runnableTimer = new Runnable() {
+            @Override
+            public void run() {
+                try {
+
+                    if (!timerIsRuning) {
+                        return;
+                    }
+
+                    handleScrollChangeEnd(-1);//向左滑动1个点
+
+                    handlerTimer.postDelayed(this, timerDelayTime * 1000);//发送定时逻辑
+
+                } catch (Exception e) {
+                    VLog.printException("initTimerAndStart定时器模拟手指效果异常", e);
+
+                    timerIsRuning = false;
+                    isForceLeftScroll = false;
+                }
+
+            }
+        };
+
+        //运行定时器
+        startTimer();
+    }
+
+    private void startTimer() {
+
+        if (!isOnTimer) {//定时器已关闭
+            return;
+        }
+
+        if (timerIsRuning) {//运行中的无需再处理
+            return;
+        }
+
+        timerIsRuning = true;
+        isForceLeftScroll = true;
+
+        handlerTimer.postDelayed(runnableTimer, timerDelayTime * 1000);
+    }
+
+    private void stopTimer() {
+
+        if (!isOnTimer) {//定时器已关闭
+            return;
+        }
+
+        timerIsRuning = false;
+        isForceLeftScroll = false;
+
+        handlerTimer.removeCallbacks(runnableTimer);
     }
 
 }
