@@ -1,5 +1,7 @@
 package com.third.com.bzq.pile;
 
+
+import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Handler;
@@ -9,6 +11,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.Interpolator;
 import android.widget.FrameLayout;
 
 import com.common.tools.VLog;
@@ -69,12 +73,19 @@ public class PileLayout extends ViewGroup {
     private float downX, downY;//手指按下时的XY的坐标
     private float lastX;//最后一次x的坐标
     private int diff_X = 0;//水平滑动的距离
+    private int lastScrollLeft = 0;//最后一次左滑的距离
 
     //定时器
     private boolean isOnTimer = true;//是否开启定时器
     private static Handler handlerTimer = new Handler();//定时器
     private static Runnable runnableTimer;//定时器-运行
     private boolean timerIsRuning = false;//定时器是否在运行中
+
+    //动画
+    private ObjectAnimator animator;//动画对象
+    private Interpolator interpolator = new DecelerateInterpolator(1.6f);//动画插值器：效果是开始速率比较快，后面减速
+    private FrameLayout animatingView;//动画层
+    private float animateValue;//动画值
 
     //**************************************** 构造函数 ****************************************//
 
@@ -435,6 +446,12 @@ public class PileLayout extends ViewGroup {
                 downX = (int) event.getX();
                 downY = (int) event.getY();
                 lastX = event.getX();
+                lastScrollLeft = 0;
+
+                if (null != animator) {
+                    animator.cancel();
+                }
+                animatingView = null;
 
                 break;
             case MotionEvent.ACTION_MOVE:
@@ -606,13 +623,36 @@ public class PileLayout extends ViewGroup {
     //手指松开后的处理
     private void handleScrollChangeEnd(int diffX) {
 
-        FrameLayout firstView = (FrameLayout) getChildAt(0);
+        FrameLayout firstView = (FrameLayout) getChildAt(0);//第一个图
         FrameLayout curView = (FrameLayout) getChildAt(1);//主图
         FrameLayout lastView = (FrameLayout) getChildAt(FOCUS_DISPLAY_COUNT);
 
-        boolean isOffset = Math.abs(curView.getLeft()) > (firstView.getWidth() / 2);//偏移量超过图片的一半
+        boolean isRightScroll = false;
+        boolean isLeftScroll = false;
 
-        if (diffX > 0 && (isOffset || isForceRightScroll)) {//向右的滑动
+        //判断是否最终向右滑动
+        if (diffX > 0) {
+            if (isForceRightScroll) {
+                isRightScroll = true;
+            } else {
+                if (firstView.getRight() > (firstView.getWidth() / 2)) {//偏移量超过图片的一半
+                    isRightScroll = true;
+                }
+            }
+        } else if (diffX < 0) {
+            //判断是否最终向左滑动
+
+            if (isForceLeftScroll) {
+                isLeftScroll = true;
+            } else {
+                if (Math.abs(curView.getLeft()) > (firstView.getWidth() / 2)) {//偏移量超过图片的一半
+                    isLeftScroll = true;
+                }
+            }
+        }
+
+        //********** 滑动 **********//
+        if (isRightScroll) {//向右的滑动
 
             //取得当前第一个的索引值
             int curFirstIndex = StringUtil.str2Int(getChildAt(0).getTag().toString());
@@ -625,23 +665,35 @@ public class PileLayout extends ViewGroup {
 
             notifyDataSetChanged();//更新适配器
 
-        } else if (diffX < 0 && (isOffset || isForceLeftScroll)) {//向左的滑动：偏移量超过图片的一半
+        } else if (isLeftScroll) {//向左的滑动：偏移量超过图片的一半
 
             //取得当前最后一个的索引值
             int curLastIndex = StringUtil.str2Int(getChildAt(FOCUS_DISPLAY_COUNT).getTag().toString());
+            lastScrollLeft = curView.getLeft();
 
             //向左滑动，从右边把View补上
             LayoutParams lp = firstView.getLayoutParams();
+
             removeViewInLayout(firstView);
             firstView.setTag(curLastIndex + 1);//添加后，索引增1
             addViewInLayout(firstView, -1, lp);
 
             notifyDataSetChanged();//更新适配器
+
         }
 
-        int num = getChildCount();
 
-        //位置初始化
+        //******************** 动画效果 ********************//
+        animatingView = (FrameLayout) getChildAt(1);//主图
+        animateValue = animatingView.getLeft();
+        int destX = originX.get(1);//动画最终移动的目标位
+        animator = ObjectAnimator.ofFloat(this, "animateValue", animateValue, destX);
+        animator.setInterpolator(interpolator);
+        animator.setDuration(360).start();
+
+
+        //******************** 位置初始化 ********************//
+        int num = getChildCount();
         for (int i = 0; i < num; i++) {
             FrameLayout rowView = (FrameLayout) getChildAt(i);
             rowView.setLeft(originX.get(i));
@@ -677,7 +729,7 @@ public class PileLayout extends ViewGroup {
                         return;
                     }
 
-                    handleScrollChangeEnd(-1);//向左滑动1个点
+                    handleScrollChangeEnd(-1);//向左滑动图层
 
                     handlerTimer.postDelayed(this, timerDelayTime * 1000);//发送定时逻辑
 
@@ -721,6 +773,42 @@ public class PileLayout extends ViewGroup {
         isForceLeftScroll = false;
 
         handlerTimer.removeCallbacks(runnableTimer);
+    }
+
+
+    //**************************************** 动画 ****************************************//
+    public void setAnimateValue(float animateValue) {
+        this.animateValue = animateValue; // 当前应该在的位置
+        int dx = Math.round(animateValue - animatingView.getLeft());
+        VLog.d("dx:" + dx);
+
+        handleAnimateValue(dx);
+    }
+
+    //处理动画效果
+    private void handleAnimateValue(int diffX) {
+        if (diffX == 0) {
+            return;
+        }
+
+        int num = getChildCount();
+
+        //整体移动：支持左右滑动
+        for (int i = 0; i < num; i++) {
+            View itemView = getChildAt(i);
+
+            if (i == 0 || i == 1) {//主图
+                itemView.offsetLeftAndRight(diffX);
+            } else {
+                itemView.offsetLeftAndRight(diffX / 7);
+            }
+
+            adjustScaleAndAlpha(itemView, i, diffX);
+        }
+    }
+
+    public float getAnimateValue() {
+        return animateValue;
     }
 
 }
