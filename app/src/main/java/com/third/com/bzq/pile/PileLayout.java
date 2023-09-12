@@ -1,6 +1,5 @@
 package com.third.com.bzq.pile;
 
-
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
