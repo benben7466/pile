@@ -70,7 +70,7 @@ public class PileLayout extends ViewGroup {
     private static final int MODE_HORIZONTAL = 1;//模式：水平
     private static final int MODE_VERTICAL = 2;//模式：垂直
     private float downX, downY;//手指按下时的XY的坐标
-    private float startX,lastX,endX;//最开始的X坐标，上一次的x坐标，最终x的坐标
+    private float startX, lastX, endX;//最开始的X坐标，上一次的x坐标，最终x的坐标
     private int diff_X = 0;//水平滑动的距离
     private int lastScrollLeft = 0;//最后一次左滑的距离
 
@@ -444,7 +444,7 @@ public class PileLayout extends ViewGroup {
 
                 downX = (int) event.getX();
                 downY = (int) event.getY();
-                startX= event.getX();
+                startX = event.getX();
                 lastX = event.getX();
                 endX = event.getX();
                 lastScrollLeft = 0;
@@ -524,7 +524,7 @@ public class PileLayout extends ViewGroup {
                     recoverRightScrollStatus();
                 }
 
-                handleScrollChangeEnd(diff_X);//处理滚动后的最终逻辑
+                handleScrollChangeEnd();//处理滚动后的最终逻辑
 
                 startTimer();//开启定时器
 
@@ -591,6 +591,7 @@ public class PileLayout extends ViewGroup {
 
             if (i == 0 || i == 1) {//主图
                 itemView.offsetLeftAndRight(diffX);
+                VLog.d("bbbb:" + diffX);
             } else {
                 itemView.offsetLeftAndRight(diffX / 7);
             }
@@ -616,7 +617,7 @@ public class PileLayout extends ViewGroup {
     }
 
     //手指松开后的处理
-    private void handleScrollChangeEnd(int diffX) {
+    private void handleScrollChangeEnd() {
 
         FrameLayout firstView = (FrameLayout) getChildAt(0);//第一个图
         FrameLayout curView = (FrameLayout) getChildAt(1);//主图
@@ -626,14 +627,14 @@ public class PileLayout extends ViewGroup {
         boolean isLeftScroll = false;
 
         //判断是否最终向右滑动还是向左移动
-        if(isForceRightScroll){
+        if (isForceRightScroll) {
             isRightScroll = true;//强制就直接指定
-        }else if(isForceLeftScroll){
+        } else if (isForceLeftScroll) {
             isLeftScroll = true;//强制就直接指定
-        }else{
+        } else {
             if (firstView.getRight() > (firstView.getWidth() / 2)) {//偏移量超过图片的一半
                 isRightScroll = true;
-            }else if(Math.abs(curView.getLeft()) > (firstView.getWidth() / 2)){
+            } else if (Math.abs(curView.getLeft()) > (firstView.getWidth() / 2)) {
                 isLeftScroll = true;
             }
         }
@@ -720,7 +721,7 @@ public class PileLayout extends ViewGroup {
                         return;
                     }
 
-                    handleScrollChangeEnd(-1);//向左滑动图层
+                    handleAnimateForTimer();
 
                     handlerTimer.postDelayed(this, timerDelayTime * 1000);//发送定时逻辑
 
@@ -800,6 +801,11 @@ public class PileLayout extends ViewGroup {
 
     public float getAnimateValue() {
         return animateValue;
+    }
+
+    //处理定时器的动画特效
+    private void handleAnimateForTimer() {
+        handleScrollChangeEnd();//向左滑动图层。初始化定时器已指定：isForceLeftScroll = true;
     }
 
 }
