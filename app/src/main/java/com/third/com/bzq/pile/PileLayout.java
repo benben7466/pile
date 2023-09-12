@@ -684,12 +684,16 @@ public class PileLayout extends ViewGroup {
 
 
         //******************** 动画效果 ********************//
-        animatingView = (FrameLayout) getChildAt(1);//主图
-        animateValue = animatingView.getLeft();
-        int destX = originX.get(1);//动画最终移动的目标位
-        animator = ObjectAnimator.ofFloat(this, "animateValue", animateValue, destX);
-        animator.setInterpolator(interpolator);
-        animator.setDuration(360).start();
+        if (timerIsRuning) {
+            //定时器运行中，不考虑动画特效
+        } else {
+            animatingView = (FrameLayout) getChildAt(1);//主图
+            animateValue = animatingView.getLeft();
+            int destX = originX.get(1);//动画最终移动的目标位
+            animator = ObjectAnimator.ofFloat(this, "animateValue", animateValue, destX);
+            animator.setInterpolator(interpolator);
+            animator.setDuration(360).start();
+        }
 
 
         //******************** 位置初始化 ********************//
