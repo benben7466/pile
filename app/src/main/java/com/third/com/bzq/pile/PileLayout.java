@@ -70,9 +70,8 @@ public class PileLayout extends ViewGroup {
     private static final int MODE_HORIZONTAL = 1;//模式：水平
     private static final int MODE_VERTICAL = 2;//模式：垂直
     private float downX, downY;//手指按下时的XY的坐标
-    private float startX, lastX, endX;//最开始的X坐标，上一次的x坐标，最终x的坐标
+    private float lastX;//上一次的x坐标
     private int diff_X = 0;//水平滑动的距离
-    private int lastScrollLeft = 0;//最后一次左滑的距离
 
     //定时器
     private boolean isOnTimer = true;//是否开启定时器
@@ -444,10 +443,7 @@ public class PileLayout extends ViewGroup {
 
                 downX = (int) event.getX();
                 downY = (int) event.getY();
-                startX = event.getX();
                 lastX = event.getX();
-                endX = event.getX();
-                lastScrollLeft = 0;
 
                 if (null != animator) {
                     animator.cancel();
@@ -517,7 +513,6 @@ public class PileLayout extends ViewGroup {
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
-                endX = (int) event.getX();
 
                 if (isRightScrolling) {//处理最终状态前，先复位
                     isRightScrolling = false;
@@ -591,7 +586,6 @@ public class PileLayout extends ViewGroup {
 
             if (i == 0 || i == 1) {//主图
                 itemView.offsetLeftAndRight(diffX);
-                VLog.d("bbbb:" + diffX);
             } else {
                 itemView.offsetLeftAndRight(diffX / 7);
             }
@@ -657,7 +651,6 @@ public class PileLayout extends ViewGroup {
 
             //取得当前最后一个的索引值
             int curLastIndex = StringUtil.str2Int(getChildAt(FOCUS_DISPLAY_COUNT).getTag().toString());
-            lastScrollLeft = curView.getLeft();
 
             //向左滑动，从右边把View补上
             LayoutParams lp = firstView.getLayoutParams();
